@@ -1,0 +1,52 @@
+databases:
+  - name: carbonledger-db
+    plan: free
+    databaseName: carbonledger
+    user: carbonledger
+
+services:
+  - type: web
+    name: carbonledger-api
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: "bash -c 'python manage.py migrate --noinput && python manage.py seed && exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120'"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "carbonledger-api.onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: carbonledger-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://carbonledger-ui.onrender.com"
+      - key: SESSION_COOKIE_SAMESITE
+        value: "None"
+      - key: SESSION_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_COOKIE_SAMESITE
+        value: "None"
+      - key: CSRF_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://carbonledger-ui.onrender.com"
+
+  - type: web
+    name: carbonledger-ui
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: "https://carbonledger-api.onrender.com"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

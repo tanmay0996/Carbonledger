@@ -1,0 +1,36 @@
+trip_id,traveler_id,travel_type,origin,destination,depart_date,return_date,distance_km,cost_usd,currency,booking_class,vendor
+TRP-10001,EMP-4421,flight,FRA,JFK,2024-01-08,2024-01-12,,1842.00,USD,economy,Lufthansa
+TRP-10002,EMP-3312,flight,MUC,LHR,2024-01-10,2024-01-11,,398.00,USD,economy,British Airways
+TRP-10003,EMP-5501,hotel,Berlin,Berlin,2024-01-14,2024-01-17,,420.00,USD,,Marriott
+TRP-10004,EMP-2201,car,Frankfurt,Hamburg,2024-01-15,2024-01-15,490.00,185.00,USD,,Sixt
+TRP-10005,EMP-4421,flight,JFK,FRA,2024-01-12,2024-01-13,,1842.00,USD,economy,Lufthansa
+TRP-10006,EMP-6601,rail,Berlin,Munich,2024-01-18,2024-01-18,585.00,210.00,USD,,Deutsche Bahn
+TRP-10007,EMP-3312,flight,LHR,DXB,2024-01-20,2024-01-24,,1150.00,USD,business,Emirates
+TRP-10008,EMP-7701,hotel,London,London,2024-01-20,2024-01-24,,880.00,USD,,Hilton
+TRP-10009,EMP-2201,car,Hamburg,Bremen,2024-01-22,2024-01-22,120.00,54.00,USD,,Enterprise
+TRP-10010,EMP-5501,flight,TXL,CDG,2024-01-25,2024-01-26,,410.00,USD,economy,Air France
+TRP-10011,EMP-8801,flight,FRA,SIN,2024-01-28,2024-02-01,,2980.00,USD,economy,Singapore Airlines
+TRP-10012,EMP-4421,hotel,New York,New York,2024-01-08,2024-01-12,,1240.00,USD,,Hyatt
+TRP-10013,EMP-9901,car,Munich,Nuremberg,2024-02-05,2024-02-05,170.00,72.00,USD,,Sixt
+TRP-10014,EMP-3312,flight,DXB,BOM,2024-01-24,2024-01-24,,540.00,USD,business,Emirates
+TRP-10015,EMP-6601,rail,Munich,Frankfurt,2024-02-08,2024-02-08,390.00,145.00,USD,,Deutsche Bahn
+TRP-10016,EMP-1101,flight,BER,AMS,2024-02-10,2024-02-11,,580.00,USD,economy,KLM
+TRP-10017,EMP-7701,hotel,Dubai,Dubai,2024-01-20,2024-01-24,,1320.00,USD,,Jumeirah
+TRP-10018,EMP-5501,car,Paris,Lyon,2024-02-14,2024-02-14,465.00,198.00,USD,,Europcar
+TRP-10019,EMP-2201,flight,HAM,VIE,2024-02-18,2024-02-19,,620.00,USD,economy,Austrian Airlines
+TRP-10020,EMP-8801,hotel,Singapore,Singapore,2024-01-28,2024-02-01,,2100.00,USD,,Raffles
+TRP-10021,EMP-4421,flight,FRA,ORD,2024-02-22,2024-02-25,,1956.00,USD,economy,United Airlines
+TRP-10022,EMP-9901,rail,Frankfurt,Cologne,2024-02-25,2024-02-25,190.00,68.00,USD,,Deutsche Bahn
+TRP-10023,EMP-3312,flight,BOM,SIN,2024-01-28,2024-01-29,,435.00,USD,economy,IndiGo
+TRP-10024,EMP-1101,hotel,Amsterdam,Amsterdam,2024-02-10,2024-02-11,,280.00,USD,,NH Hotels
+TRP-10025,EMP-6601,car,Cologne,Dusseldorf,2024-03-01,2024-03-01,45.00,28.00,USD,,Sixt
+TRP-10026,EMP-5501,flight,CDG,JFK,2024-03-04,2024-03-04,,1620.00,USD,economy,Air France
+TRP-10027,EMP-7701,flight,DXB,FRA,2024-01-28,2024-01-29,,1180.00,USD,business,Lufthansa
+TRP-10028,EMP-2201,hotel,Vienna,Vienna,2024-02-18,2024-02-19,,195.00,USD,,Radisson
+TRP-10029,EMP-8801,flight,SIN,NRT,2024-02-05,2024-02-05,,560.00,USD,economy,ANA
+TRP-10030,EMP-9901,flight,FRA,LAX,2024-03-10,2024-03-15,,2480.00,USD,economy,Lufthansa
+TRP-10031,EMP-4421,hotel,Chicago,Chicago,2024-02-22,2024-02-25,,980.00,USD,,Marriott
+TRP-10032,EMP-1101,car,Amsterdam,Brussels,2024-03-05,2024-03-05,210.00,88.00,USD,,Hertz
+TRP-10033,INVALID_EMP,flight,FRA,LHR,2024-03-12,2024-03-12,,410.00,USD,economy,Lufthansa
+TRP-10034,EMP-6601,flight,,,2024-03-15,2024-03-16,,380.00,USD,economy,Ryanair
+TRP-10035,EMP-3312,car,Berlin,Prague,2024-03-18,2024-03-18,350.00,148.00,USD,,Avis
