@@ -8,7 +8,6 @@ services:
   - type: web
     name: carbonledger-api
     env: python
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: "bash -c 'python manage.py migrate --noinput && python manage.py seed && exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120'"
@@ -39,7 +38,6 @@ services:
   - type: web
     name: carbonledger-ui
     env: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
