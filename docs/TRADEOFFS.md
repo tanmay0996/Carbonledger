@@ -20,7 +20,15 @@ Consequence: Any authenticated user can query any tenant's data by changing the 
 
 ---
 
-## 3. No emission factor versioning
+## 3. No role-based access control
+
+Two users are seeded (admin and analyst) but both have identical API permissions. An analyst can approve and reject rows the same as an admin.
+
+Consequence: In production, analysts would typically flag and comment but not approve — approvals would be gated to a senior reviewer or finance lead to satisfy the four-eyes principle required by most carbon reporting standards (GHG Protocol, ISO 14064). The fix is a UserProfile model with a role field and per-view permission decorators. Skipped here because it does not affect the data pipeline being evaluated.
+
+---
+
+## 4. No emission factor versioning
 
 The emission factors (kgCO2e per liter, per kWh, per km) are hardcoded in the parser files. DEFRA, the GHG Protocol, and national grid operators update their factors annually. If a client re-submits data from a prior year, the wrong factor will be used.
 

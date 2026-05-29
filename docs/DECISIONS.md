@@ -62,6 +62,16 @@ What I would ask the PM: Is there a plan to expose this data via a public API to
 
 ---
 
+Question: Why do admin and analyst have the same permissions?
+
+Decision: Both users share a single permission tier (IsAuthenticated). No RBAC.
+
+Why: Two users were seeded to demonstrate that the system supports multiple actors. Role-based access control — read-only analyst vs. approver admin — was a deliberate tradeoff. The data model and auth system support it, but adding it in this version would require a UserProfile/group mapping, per-view permission checks, and UI gating, none of which changes the core ESG data pipeline being demonstrated. See TRADEOFFS.md for the full reasoning.
+
+What I would ask the PM: Should analysts be able to approve, or only flag and comment? Should upload be restricted to admins only?
+
+---
+
 Question: Why not Celery for ingestion?
 
 Decision: Synchronous ingestion in the request/response cycle.

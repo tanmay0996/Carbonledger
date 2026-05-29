@@ -17,6 +17,7 @@ export default function Nav() {
         <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink>
         <NavLink to="/ingest" className={({ isActive }) => isActive ? 'active' : ''}>Ingest</NavLink>
         <NavLink to="/review" className={({ isActive }) => isActive ? 'active' : ''}>Review</NavLink>
+        <NavLink to="/audit-log" className={({ isActive }) => isActive ? 'active' : ''}>Audit Log</NavLink>
       </nav>
       <button className="logout-btn" onClick={handleLogout}>
         {user?.username} — Logout

@@ -1,24 +1,25 @@
-import csv
-import io
 import logging
-from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from .utils import resolve, parse_date, make_reader
 
 logger = logging.getLogger(__name__)
 
-# UK grid average 2024: 0.207 kgCO2e per kWh (National Grid ESO)
 GRID_EMISSION_FACTOR = Decimal('0.207')
 
-REQUIRED_FIELDS = ['site_name', 'period_start', 'period_end', 'usage_kwh']
+PERIOD_START = ['period_start', 'start_date', 'billing_start', 'from_date', 'date_from',
+                'bill_from', 'period_from', 'start', 'from', 'billing_period_start']
+PERIOD_END   = ['period_end', 'end_date', 'billing_end', 'to_date', 'date_to',
+                'bill_to', 'period_to', 'end', 'to', 'billing_period_end']
+USAGE_KWH    = ['usage_kwh', 'kwh', 'consumption', 'consumption_kwh', 'energy_kwh',
+                'usage', 'electricity_kwh', 'energy', 'units', 'reading', 'amount_kwh']
+SITE_NAME    = ['site_name', 'site', 'location', 'address', 'building',
+                'facility', 'name', 'meter_name', 'place', 'property']
+METER_ID     = ['meter_id', 'meter', 'meter_number', 'meter_ref', 'id', 'account']
 
 
 def parse(file_content: str) -> dict:
-    success = []
-    failed = []
-    warnings = []
-
-    reader = csv.DictReader(io.StringIO(file_content))
-
+    success, failed, warnings = [], [], []
+    reader = make_reader(file_content)
     for row_num, row in enumerate(reader, start=2):
         raw = dict(row)
         result, error, row_warnings = _parse_row(row_num, raw)
@@ -27,60 +28,60 @@ def parse(file_content: str) -> dict:
         else:
             warnings.extend(row_warnings)
             success.append(result)
-
     return {'success': success, 'failed': failed, 'warnings': warnings}
 
 
-def _parse_row(row_num: int, row: dict) -> tuple:
+def _parse_row(row_num, row):
     row_warnings = []
 
-    meter_id = row.get('meter_id', '').strip()
+    meter_id = resolve(row, *METER_ID)
     if not meter_id:
         row_warnings.append({'row': row_num, 'msg': 'missing meter_id, row accepted with warning'})
 
-    missing = [f for f in REQUIRED_FIELDS if not row.get(f, '').strip()]
-    if missing:
-        return None, f"missing required fields: {missing}", []
+    site = resolve(row, *SITE_NAME) or 'Unknown site'
 
-    usage_str = row['usage_kwh'].strip()
+    start_str = resolve(row, *PERIOD_START)
+    end_str   = resolve(row, *PERIOD_END)
+    usage_str = resolve(row, *USAGE_KWH)
+
+    if not start_str:
+        return None, 'missing period start date column', []
+    if not end_str:
+        return None, 'missing period end date column', []
+    if not usage_str:
+        return None, 'missing electricity usage (kWh) column', []
+
     try:
-        usage_kwh = Decimal(usage_str)
+        usage_kwh = Decimal(usage_str.replace(',', '.'))
     except InvalidOperation:
-        return None, f"invalid usage_kwh '{usage_str}'", []
+        return None, f"invalid usage value '{usage_str}'", []
 
     if usage_kwh <= 0:
-        return None, f"usage_kwh must be positive, got '{usage_kwh}'", []
+        return None, f"usage must be positive, got '{usage_kwh}'", []
 
     try:
-        period_start = datetime.strptime(row['period_start'].strip(), '%Y-%m-%d').date()
-        period_end = datetime.strptime(row['period_end'].strip(), '%Y-%m-%d').date()
+        period_start = parse_date(start_str)
+        period_end   = parse_date(end_str)
     except ValueError as e:
-        return None, f"invalid date: {e}", []
+        return None, str(e), []
 
     if period_end <= period_start:
-        return None, f"period_end must be after period_start", []
+        return None, 'period end must be after period start', []
 
-    period_days = (period_end - period_start).days
-    spans_months = (period_start.year, period_start.month) != (period_end.year, period_end.month)
-    if spans_months:
-        row_warnings.append({'row': row_num, 'msg': f"billing period is {period_days} days, spans two calendar months"})
+    if (period_start.year, period_start.month) != (period_end.year, period_end.month):
+        days = (period_end - period_start).days
+        row_warnings.append({'row': row_num, 'msg': f"billing period ({days} days) spans two calendar months"})
 
     co2e_kg = usage_kwh * GRID_EMISSION_FACTOR
 
     return {
-        'row': row_num,
-        'raw': row,
-        'scope': 2,
-        'source': 'utility',
+        'row': row_num, 'raw': row,
+        'scope': 2, 'source': 'utility',
         'activity_date': period_start,
-        'description': f"electricity {row['site_name'].strip()} {period_start} to {period_end}",
-        'location': row['site_name'].strip(),
-        'meter_id': meter_id,
-        'period_start': period_start,
-        'period_end': period_end,
-        'original_value': float(usage_kwh),
-        'original_unit': 'kWh',
-        'normalized_value': float(usage_kwh),
-        'normalized_unit': 'kWh',
+        'description': f"electricity {site} {period_start} to {period_end}",
+        'location': site,
+        'original_value': float(usage_kwh), 'original_unit': 'kWh',
+        'normalized_value': float(usage_kwh), 'normalized_unit': 'kWh',
         'co2e_kg': float(co2e_kg),
+        'warnings': row_warnings,
     }, None, row_warnings

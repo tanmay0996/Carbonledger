@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import Dashboard from './pages/Dashboard'
 import Ingest from './pages/Ingest'
 import Review from './pages/Review'
+import AuditLog from './pages/AuditLog'
 import Login from './pages/Login'
 import './index.css'
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/ingest" element={<RequireAuth><Ingest /></RequireAuth>} />
           <Route path="/review/:batchId?" element={<RequireAuth><Review /></RequireAuth>} />
+          <Route path="/audit-log" element={<RequireAuth><AuditLog /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

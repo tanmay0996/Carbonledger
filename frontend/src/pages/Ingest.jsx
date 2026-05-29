@@ -16,11 +16,25 @@ export default function Ingest() {
   const inputRef = useRef()
   const navigate = useNavigate()
 
+  const detectSource = (filename) => {
+    const name = filename.toLowerCase()
+    if (name.includes('sap')) return 'sap'
+    if (name.includes('utility') || name.includes('bill')) return 'utility'
+    if (name.includes('travel')) return 'travel'
+    return null
+  }
+
+  const pickFile = (f) => {
+    if (!f) return
+    setFile(f)
+    const detected = detectSource(f.name)
+    if (detected) setSource(detected)
+  }
+
   const handleDrop = (e) => {
     e.preventDefault()
     setDragOver(false)
-    const f = e.dataTransfer.files[0]
-    if (f) setFile(f)
+    pickFile(e.dataTransfer.files[0])
   }
 
   const handleSubmit = async (e) => {
@@ -70,7 +84,7 @@ export default function Ingest() {
                   ref={inputRef}
                   type="file"
                   accept=".csv"
-                  onChange={(e) => setFile(e.target.files[0])}
+                  onChange={(e) => pickFile(e.target.files[0])}
                 />
                 {file
                   ? <span style={{ color: '#1a1a1a', fontWeight: 500 }}>{file.name}</span>

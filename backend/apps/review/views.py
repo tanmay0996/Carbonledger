@@ -126,3 +126,19 @@ class AuditLogListView(APIView):
             'error': None,
             'meta': {'count': logs.count()},
         })
+
+
+class GlobalAuditLogView(APIView):
+    def get(self, request):
+        tenant_id = request.query_params.get('tenant_id', 1)
+        logs = (
+            AuditLog.objects
+            .filter(emission__tenant_id=tenant_id)
+            .select_related('emission', 'performed_by')
+            .order_by('-performed_at')[:200]
+        )
+        return Response({
+            'data': AuditLogSerializer(logs, many=True).data,
+            'error': None,
+            'meta': {'count': len(logs)},
+        })
