@@ -55,9 +55,12 @@ export default function Review() {
     catch (e) { setError(e.message) }
   }
 
+  const flagged = emissions.filter((e) => e.status === 'flagged')
+  const nonFlagged = emissions.filter((e) => e.status !== 'flagged')
+
   const filtered = statusFilter === 'all'
-    ? emissions
-    : emissions.filter((e) => e.status === statusFilter)
+    ? nonFlagged
+    : nonFlagged.filter((e) => e.status === statusFilter)
 
   const counts = emissions.reduce((acc, e) => {
     acc[e.status] = (acc[e.status] || 0) + 1
@@ -107,76 +110,134 @@ export default function Review() {
             {!batchId && <div className="empty">Select a batch to review its rows.</div>}
             {batchId && loading && <div className="empty">Loading...</div>}
             {batchId && !loading && selected && (
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <div>
-                    <strong>Batch #{selected.id}</strong>
-                    &nbsp;·&nbsp;<span className={`badge ${selected.source}`}>{selected.source}</span>
-                    &nbsp;·&nbsp;{selected.total_rows} rows
-                    &nbsp;·&nbsp;<span style={{ color: '#10b981' }}>{selected.parsed_rows} parsed</span>
-                    {selected.failed_rows > 0 && <span style={{ color: '#ef4444' }}>&nbsp;·&nbsp;{selected.failed_rows} failed</span>}
-                  </div>
-                  <button className="btn btn-success btn-sm" onClick={handleBulkApprove}>
-                    Bulk approve pending
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12, fontSize: 12 }}>
-                  {['all', 'pending', 'approved', 'rejected', 'flagged'].map((s) => (
-                    <button
-                      key={s}
-                      className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-ghost'}`}
-                      onClick={() => setStatusFilter(s)}
-                    >
-                      {s} {s === 'all' ? `(${emissions.length})` : counts[s] ? `(${counts[s]})` : ''}
+              <>
+                {/* Batch header */}
+                <div className="card" style={{ marginBottom: 16, padding: '12px 20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <strong>Batch #{selected.id}</strong>
+                      &nbsp;·&nbsp;<span className={`badge ${selected.source}`}>{selected.source}</span>
+                      &nbsp;·&nbsp;{selected.total_rows} rows
+                      &nbsp;·&nbsp;<span style={{ color: '#10b981' }}>{selected.parsed_rows} parsed</span>
+                      {selected.failed_rows > 0 && <span style={{ color: '#ef4444' }}>&nbsp;·&nbsp;{selected.failed_rows} failed</span>}
+                    </div>
+                    <button className="btn btn-success btn-sm" onClick={handleBulkApprove}>
+                      Bulk approve pending
                     </button>
-                  ))}
+                  </div>
                 </div>
 
-                {filtered.length === 0 ? (
-                  <div className="empty">No rows for this filter.</div>
-                ) : (
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Date</th>
-                          <th>Scope</th>
-                          <th>Description</th>
-                          <th>kgCO2e</th>
-                          <th>Status</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filtered.map((em) => (
-                          <tr key={em.id}>
-                            <td style={{ color: '#888' }}>#{em.id}</td>
-                            <td>{em.activity_date}</td>
-                            <td>{em.scope}</td>
-                            <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {em.description || '—'}
-                            </td>
-                            <td>{Number(em.co2e_kg).toLocaleString('en-US', { maximumFractionDigits: 1 })}</td>
-                            <td><StatusBadge status={em.status} /></td>
-                            <td>
-                              {em.status !== 'approved' && (
-                                <div className="row-actions">
-                                  <button className="btn btn-success btn-sm" onClick={() => act(approveRow, em.id)}>✓</button>
-                                  <button className="btn btn-danger btn-sm" onClick={() => act(rejectRow, em.id)}>✗</button>
-                                  <button className="btn btn-warning btn-sm" onClick={() => act(flagRow, em.id, 'manual flag')}>⚑</button>
-                                </div>
-                              )}
-                              {em.status === 'approved' && <span style={{ color: '#888', fontSize: 11 }}>locked</span>}
-                            </td>
+                {/* Flagged rows — shown separately and prominently */}
+                {flagged.length > 0 && (
+                  <div className="card" style={{ borderLeft: '4px solid #f59e0b', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                      <span style={{ fontSize: 16 }}>⚑</span>
+                      <span style={{ fontWeight: 600, fontSize: 14 }}>
+                        Needs attention — {flagged.length} flagged row{flagged.length !== 1 ? 's' : ''}
+                      </span>
+                      <span style={{ fontSize: 12, color: '#888' }}>
+                        These rows were flagged by the parser or manually. Review each one before approving the batch.
+                      </span>
+                    </div>
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Scope</th>
+                            <th>Description</th>
+                            <th>kgCO2e</th>
+                            <th>Flag reason</th>
+                            <th>Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {flagged.map((em) => (
+                            <tr key={em.id} style={{ background: '#fffbeb' }}>
+                              <td style={{ color: '#888' }}>#{em.id}</td>
+                              <td>{em.activity_date}</td>
+                              <td>{em.scope}</td>
+                              <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {em.description || '—'}
+                              </td>
+                              <td>{Number(em.co2e_kg).toLocaleString('en-US', { maximumFractionDigits: 1 })}</td>
+                              <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#92400e', fontSize: 12 }}>
+                                {em.flag_reason || '—'}
+                              </td>
+                              <td>
+                                <div className="row-actions">
+                                  <button className="btn btn-success btn-sm" onClick={() => act(approveRow, em.id)}>✓ Approve</button>
+                                  <button className="btn btn-danger btn-sm" onClick={() => act(rejectRow, em.id)}>✗ Reject</button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
-              </div>
+
+                {/* All other rows */}
+                <div className="card">
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 12, fontSize: 12 }}>
+                    {['all', 'pending', 'approved', 'rejected'].map((s) => (
+                      <button
+                        key={s}
+                        className={`btn btn-sm ${statusFilter === s ? 'btn-primary' : 'btn-ghost'}`}
+                        onClick={() => setStatusFilter(s)}
+                      >
+                        {s} {s === 'all' ? `(${nonFlagged.length})` : counts[s] ? `(${counts[s]})` : '(0)'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {filtered.length === 0 ? (
+                    <div className="empty">No rows for this filter.</div>
+                  ) : (
+                    <div className="table-wrap">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Scope</th>
+                            <th>Description</th>
+                            <th>kgCO2e</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map((em) => (
+                            <tr key={em.id}>
+                              <td style={{ color: '#888' }}>#{em.id}</td>
+                              <td>{em.activity_date}</td>
+                              <td>{em.scope}</td>
+                              <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {em.description || '—'}
+                              </td>
+                              <td>{Number(em.co2e_kg).toLocaleString('en-US', { maximumFractionDigits: 1 })}</td>
+                              <td><StatusBadge status={em.status} /></td>
+                              <td>
+                                {em.status !== 'approved' && (
+                                  <div className="row-actions">
+                                    <button className="btn btn-success btn-sm" onClick={() => act(approveRow, em.id)}>✓</button>
+                                    <button className="btn btn-danger btn-sm" onClick={() => act(rejectRow, em.id)}>✗</button>
+                                    <button className="btn btn-warning btn-sm" onClick={() => act(flagRow, em.id, 'manual flag')}>⚑</button>
+                                  </div>
+                                )}
+                                {em.status === 'approved' && <span style={{ color: '#888', fontSize: 11 }}>locked</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>

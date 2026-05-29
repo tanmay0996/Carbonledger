@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from apps.tenants.models import Tenant
 from apps.ingestion.models import IngestionBatch, RawRecord
@@ -43,6 +44,22 @@ class NormalizedEmission(models.Model):
     edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='edited_emissions')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            try:
+                current = NormalizedEmission.objects.get(pk=self.pk)
+            except NormalizedEmission.DoesNotExist:
+                current = None
+            if current and current.status == self.STATUS_APPROVED:
+                update_fields = kwargs.get('update_fields')
+                # Only allow the status field itself to change (for the approve idempotency check)
+                # Any other field change on an approved row is blocked
+                if update_fields and set(update_fields) - {'status', 'updated_at'}:
+                    raise ValidationError('Approved rows are locked and cannot be edited.')
+                if not update_fields:
+                    raise ValidationError('Approved rows are locked and cannot be edited.')
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Scope {self.scope} | {self.co2e_kg} kgCO2e | {self.status}"

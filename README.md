@@ -2,9 +2,20 @@
 
 A Django REST + React app for ingesting, normalizing, and reviewing ESG emissions data from enterprise clients.
 
+## Login credentials
+
+Two users are seeded automatically on first startup:
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin | admin123 | Superuser, full access |
+| analyst | analyst123 | Standard analyst user |
+
+Use either to log in at http://localhost:5173.
+
 ## How to run locally with Docker
 
-1. Copy the env file and fill in any values you want to change:
+1. Copy the env file:
 
 ```bash
 cp .env.example .env
@@ -16,15 +27,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-This starts Postgres on port 5432, the Django backend on port 8000, and the React dev server on port 5173.
+This starts Postgres on port 5432, the Django backend on port 8000, and the React dev server on port 5173. On first boot, migrations run and the default users and tenant are seeded automatically.
 
-3. Create a superuser so you can log in:
-
-```bash
-docker compose exec backend python manage.py createsuperuser
-```
-
-4. Open http://localhost:5173 and log in with the superuser credentials.
+3. Open http://localhost:5173 and log in with `admin / admin123` or `analyst / analyst123`.
 
 ## How to run locally without Docker
 
@@ -38,7 +43,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp ../.env.example ../.env  # edit DB credentials
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py seed       # creates default users and tenant
 python manage.py runserver
 ```
 
@@ -58,11 +63,7 @@ cd backend
 
 ## Admin panel
 
-Go to http://localhost:8000/admin and log in with your superuser. From there you can create Tenant records, inspect batches, and manage users.
-
-## Default tenant
-
-After creating a superuser, go to the admin panel and create a Tenant with id=1. The frontend hardcodes `tenant_id=1` for now.
+Go to http://localhost:8000/admin and log in with `admin / admin123`. The seed command creates a tenant called "Acme Corp" with id=1, which is what the frontend uses.
 
 ## Deployment on Render
 
